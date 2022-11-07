@@ -1,0 +1,32 @@
+pipeline {
+    agent none
+    environment {
+        ECR_REGISTRY=credentials('ecr-registry-id')
+    }
+    stages {
+        stage('Build') {           
+        agent {
+            label 'jenkins_agent'
+            }
+        steps {
+            sh './ci/build.sh'
+        }     
+        stage('deploy') {
+            agent {
+                docker {
+            label 'jenkins_agent'
+            image 'narotam/nginx-hello-world'
+            reuseNode true
+            }
+            }
+            steps {
+                sh '/ci/deploy.sh'
+            }
+            post{
+                always {
+                    cleanWs()
+                }
+            }
+        }
+    }
+}
